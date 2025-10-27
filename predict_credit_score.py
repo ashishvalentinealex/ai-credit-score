@@ -90,9 +90,8 @@ new_data = pd.DataFrame([selected_profile])
 print("\n Input data:")
 print(new_data)
 
-# -------------------------------
-# 3. Align Columns to Training Features
-# -------------------------------
+# Align Columns to Training Features
+
 try:
     expected_cols = scaler.feature_names_in_
 except AttributeError:
