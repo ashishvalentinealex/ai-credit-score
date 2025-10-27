@@ -1,8 +1,3 @@
-# ===========================================================
-# File: predict_credit_score.py
-# Purpose: Predict credit scores for sample profiles (Excellent, Good, Fair, Bad)
-# ===========================================================
-
 import pandas as pd
 import numpy as np
 import joblib
@@ -15,24 +10,22 @@ import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# -------------------------------
-# 1. Load Model and Scaler
-# -------------------------------
+
+# Load Model and Scaler
 MODEL_PATH = "ntc_credit_model_clean.pkl"
 SCALER_PATH = "ntc_scaler.pkl"
 
 if not (os.path.exists(MODEL_PATH) and os.path.exists(SCALER_PATH)):
-    print("❌ Model or Scaler file not found! Please train or unwrap them first.")
+    print(" Model or Scaler file not found! Please train or unwrap them first.")
     sys.exit(1)
 
-print("🔍 Loading model and scaler...")
+print(" Loading model and scaler...")
 model: xgb.XGBClassifier = joblib.load(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
-print("✅ Model and scaler loaded successfully!")
+print(" Model and scaler loaded successfully!")
 
-# -------------------------------
-# 2. Define sample applicants
-# -------------------------------
+
+# Define sample applicants
 profiles = {
     "excellent": {
         "monthly_income": 150000,
@@ -84,17 +77,17 @@ profiles = {
 if len(sys.argv) > 1:
     profile_key = sys.argv[1].lower()
     if profile_key not in profiles:
-        print(f"⚠️ Unknown profile '{profile_key}'. Choose from: {list(profiles.keys())}")
+        print(f" Unknown profile '{profile_key}'. Choose from: {list(profiles.keys())}")
         sys.exit(1)
     selected_profile = profiles[profile_key]
-    print(f"📂 Running prediction for profile: {profile_key.upper()}")
+    print(f" Running prediction for profile: {profile_key.upper()}")
 else:
     selected_profile = profiles["excellent"]
-    print("⚙️ No profile provided. Defaulting to: EXCELLENT")
+    print(" No profile provided. Defaulting to: EXCELLENT")
 
 new_data = pd.DataFrame([selected_profile])
 
-print("\n🧾 Input data:")
+print("\n Input data:")
 print(new_data)
 
 # -------------------------------
@@ -103,26 +96,24 @@ print(new_data)
 try:
     expected_cols = scaler.feature_names_in_
 except AttributeError:
-    print("⚠️ Could not detect original feature names. Please specify manually.")
+    print(" Could not detect original feature names. Please specify manually.")
     sys.exit(1)
 
 missing_cols = [c for c in expected_cols if c not in new_data.columns]
 extra_cols = [c for c in new_data.columns if c not in expected_cols]
 
 if missing_cols:
-    print(f"⚠️ Missing columns in input: {missing_cols}")
+    print(f" Missing columns in input: {missing_cols}")
     for col in missing_cols:
         new_data[col] = 0
 
 if extra_cols:
-    print(f"⚠️ Extra columns not used by model: {extra_cols}")
+    print(f" Extra columns not used by model: {extra_cols}")
     new_data = new_data.drop(columns=extra_cols)
 
 new_data = new_data[expected_cols]
 
-# -------------------------------
-# 4. Scale and Predict
-# -------------------------------
+# Scale and Predict
 X_scaled = scaler.transform(new_data)
 risk_prob = model.predict_proba(X_scaled)[:, 1]
 
@@ -131,7 +122,7 @@ flip = False
 if risk_prob[0] > 0.5 and new_data.iloc[0]["monthly_income"] > 80000:
     flip = True
 if flip:
-    print("⚠️ Detected inverse probability mapping (higher income → higher risk). Fixing scale...")
+    print(" Detected inverse probability mapping (higher income → higher risk). Fixing scale...")
     risk_prob = 1 - risk_prob
 
 # Compute credit score
@@ -141,29 +132,26 @@ results = new_data.copy()
 results["Risk_Prob"] = risk_prob.round(4)
 results["Predicted_Credit_Score"] = credit_score.round(0)
 
-print("\n📊 Predictions:")
+print("\n Predictions:")
 print(results)
 
 results.to_csv(f"predicted_credit_score_{list(profiles.keys())[list(profiles.values()).index(selected_profile)]}.csv", index=False)
-print("\n💾 Results saved successfully.")
+print("\n Results saved successfully.")
 
-# -------------------------------
-# 5. SHAP Explainability (Optional)
-# -------------------------------
+# SHAP Explainability
+
 try:
     booster = model.get_booster()
     booster.feature_names = list(new_data.columns)
     explainer = shap.TreeExplainer(booster, feature_perturbation="interventional")
     shap_values = explainer.shap_values(X_scaled)
 
-    print("\n🔍 SHAP feature contributions computed successfully!")
+    print("\n SHAP feature contributions computed successfully!")
     shap.summary_plot(shap_values, new_data, plot_type="bar", show=False)
     plt.title("SHAP Feature Importance")
     plt.tight_layout()
     plt.show()
 except Exception as e:
-    print(f"⚠️ Skipping SHAP visualization: {e}")
+    print(f" Skipping SHAP visualization: {e}")
 
-# ===========================================================
-# END OF FILE
-# ===========================================================
+

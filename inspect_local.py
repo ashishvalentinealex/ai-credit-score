@@ -1,12 +1,3 @@
-# import joblib
-# m = joblib.load("ntc_credit_model.pkl")
-# print("Top-level type:", type(m))
-# if isinstance(m, dict):
-#     for k,v in m.items():
-#         print(f"{k}: {type(v)}")
-#         if isinstance(v, dict):
-#             print("  Subkeys:", list(v.keys()))
-
 
 import joblib
 import xgboost as xgb

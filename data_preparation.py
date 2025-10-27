@@ -1,20 +1,13 @@
-# =============================================
-# File: data_preparation.py
-# Purpose: Generate synthetic data for New-to-Credit (NTC) customers
-# =============================================
-
 import numpy as np
 import pandas as pd
 
-# ------------------------
-# 1. Configuration
-# ------------------------
-np.random.seed(42)
-N = 5000  # number of customers (was 2000)
 
-# ------------------------
-# 2. Generate synthetic customer features
-# ------------------------
+# Configuration
+np.random.seed(42)
+N = 5000 
+
+# Generate synthetic customer features
+
 data = pd.DataFrame({
     # Demographics
     "age": np.random.randint(22, 45, size=N),
@@ -34,9 +27,8 @@ data = pd.DataFrame({
     "avg_monthly_balance": np.random.normal(20000, 5000, size=N),
 })
 
-# ------------------------
-# 3. Create synthetic target label (0 = good, 1 = risky)
-# ------------------------
+# Create synthetic target label (0 = good, 1 = risky)
+
 data["target"] = (
     (data["monthly_income"] < 40000).astype(int) +
     (data["electricity_bill_ratio"] < 0.8).astype(int) +
@@ -49,16 +41,12 @@ data["target"] = (
 # If ≥3 negative signals → risky customer
 data["target"] = (data["target"] >= 3).astype(int)
 
-# ------------------------
-# 4. Quick sanity check
-# ------------------------
+#  Quick sanity check
 print(" Data generation complete")
 print(data.head(10))
 print("\nGood vs Risky counts:")
 print(data["target"].value_counts())
 
-# ------------------------
-# 5. Save dataset
-# ------------------------
+# Save dataset
 data.to_csv("ntc_credit_data.csv", index=False)
 print(f"\nSaved ntc_credit_data.csv — {len(data)} rows created.")
